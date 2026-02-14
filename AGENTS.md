@@ -10,6 +10,7 @@ This is an infrastructure-only repo. Application code lives outside the repo and
 Use the Makefile-driven workflow:
 - `make build` — build the php image
 - `make up` / `make down` — start/stop the stack
+- `make trust-certs` — refresh CA trust store in the running php container (runs as root in-container)
 - `make logs SERVICE=nginx` — tail service logs
 - `make shell SERVICE=php` or `make php` — open a shell in the php container
 - `make composer CMD="install"` — run composer in the mounted app
@@ -30,8 +31,9 @@ If screenshots or logs are relevant, attach them to the PR description.
 
 ## Configuration & Security Tips
 - Never commit local IPs or certs. Use `.env` for local values and keep only placeholders in `.env.example`.
-- Local CA certs go in `docker/certs/*.crt` (ignored by Git). Restart containers to trust new CAs.
+- Local CA certs go in `docker/certs/*.crt` (ignored by Git). Run `make trust-certs` (or `make up`) to trust new CAs.
 - If you change `SHOPWARE_HOSTNAME` or `SHOPWARE_IP`, recreate containers so `/etc/hosts` updates.
 - Containers run as your host user (via `UID`/`GID`) so files created in `APP_DIR` are not owned by root.
 - The php entrypoint writes runtime INI files to `/tmp/php-conf` and uses `PHP_INI_SCAN_DIR` to include them.
+- The php container runs unprivileged, so CA bundle updates must be executed as root (handled by `make trust-certs`).
 - `make` loads `.env`, so `APP_DIR` and other defaults match docker compose unless you override on the command line.

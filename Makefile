@@ -22,10 +22,11 @@ export GID
 SERVICE ?= php
 CMD ?=
 
-.PHONY: up down build restart logs shell php composer init-app smoke
+.PHONY: up down build restart logs shell php composer init-app smoke trust-certs
 
 up:
 	$(COMPOSE) up -d --remove-orphans
+	@$(MAKE) trust-certs
 
 down:
 	$(COMPOSE) down
@@ -64,3 +65,11 @@ init-app:
 smoke:
 	@curl -fsS http://$(APP_HOST):$(APP_PORT)/ > /dev/null
 	@echo "OK"
+
+trust-certs:
+	@if ls docker/certs/*.crt >/dev/null 2>&1; then \
+		echo "Refreshing CA certificates inside php container..."; \
+		$(COMPOSE) exec -T -u root php sh -lc 'update-ca-certificates >/dev/null && echo "CA certificates refreshed."'; \
+	else \
+		echo "No custom CA certificates found in docker/certs/*.crt; skipping."; \
+	fi

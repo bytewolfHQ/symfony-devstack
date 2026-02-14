@@ -17,7 +17,11 @@ else
 fi
 
 if ls /usr/local/share/ca-certificates/*.crt >/dev/null 2>&1; then
-  update-ca-certificates >/dev/null 2>&1 || true
+  if [ "$(id -u)" = "0" ]; then
+    update-ca-certificates >/dev/null
+  else
+    echo "Custom CAs found, but running unprivileged; skipping update-ca-certificates." >&2
+  fi
 fi
 
 echo "memory_limit=${PHP_MEMORY_LIMIT:-512M}" > "${MEMORY_LIMIT_INI}"

@@ -35,6 +35,7 @@ make init-app SYMFONY_VERSION=6.4 APP_DIR=../new-app
 ```sh
 make up
 ```
+If `docker/certs/*.crt` contains custom CAs, `make up` also refreshes the php trust store.
 
 Visit `http://localhost:8080` (or `APP_HOST`/`APP_PORT`).
 
@@ -71,11 +72,18 @@ If `curl` fails with `unable to get local issuer certificate` inside the php con
 make down
 make up
 ```
+Or refresh CAs in a running stack:
+```sh
+make trust-certs
+```
 3) Validate inside the php container:
 ```sh
 make php
 curl -v https://your-hostname 2>&1 | grep -E "SSL|issuer|subject"
 ```
+
+## Shopware OAuth token endpoint
+`/api/oauth/token` expects `POST` (not `GET`). A `405` response with valid TLS usually means the method is wrong.
 
 ## Useful commands
 ```sh
@@ -86,6 +94,7 @@ make shell SERVICE=php
 make php
 make composer CMD="install"
 make smoke
+make trust-certs
 ```
 
 ## Composer usage
