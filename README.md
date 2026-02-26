@@ -63,6 +63,8 @@ For HTTPS with a local CA, place the CA cert in `docker/certs/` as a `.crt` and 
 - Trusted proxies: Symfony may need trusted proxy configuration when behind Traefik.
 - Stale upstream IPs: Nginx uses Docker DNS resolver with a variable upstream to avoid stale IP issues.
 - Xdebug: enable with `ENABLE_XDEBUG=1` in `.env` before starting containers.
+- PhpStorm CLI debug mapping: set `PHP_IDE_CONFIG=serverName=symfony-devstack` and configure a PhpStorm server with that exact name and path mapping `/var/www/html` -> your local `APP_DIR`.
+- If breakpoints are not hit in CLI commands, run once with explicit env overrides: `docker compose exec -e PHP_IDE_CONFIG="serverName=symfony-devstack" -e XDEBUG_CONFIG="idekey=PHPSTORM client_host=host.docker.internal client_port=9003" php sh -lc 'php bin/console ...'`.
 
 ## Troubleshooting TLS to LAN services
 If `curl` fails with `unable to get local issuer certificate` inside the php container:

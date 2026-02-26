@@ -6,9 +6,11 @@ services:
     environment:
       APP_ENV: ${APP_ENV:-dev}
       ENABLE_XDEBUG: ${ENABLE_XDEBUG:-0}
+      PHP_IDE_CONFIG: ${PHP_IDE_CONFIG:-serverName=symfony-devstack}
       PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT:-512M}
       PHP_INI_SCAN_DIR: /usr/local/etc/php/conf.d:/tmp/php-conf
     extra_hosts:
+      - "host.docker.internal:host-gateway"
       - "${SHOPWARE_HOSTNAME:-shopware.local}:${SHOPWARE_IP:-127.0.0.1}"
     volumes:
       - ${APP_DIR:-../app}:/var/www/html
