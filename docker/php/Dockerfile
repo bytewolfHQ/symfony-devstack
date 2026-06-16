@@ -1,4 +1,22 @@
-FROM php:8.3-fpm-alpine
+# syntax=docker/dockerfile:1
+
+# Beide ARGs muessen VOR dem ersten FROM stehen, sonst sind sie nur in der
+# Stage sichtbar, in der sie deklariert wurden (ARG-Scoping in Multi-Stage-Builds).
+ARG PHP_VERSION=8.3
+ARG COMPOSER_VERSION=2
+
+# Eigene Stage fuer Composer: BuildKit kann ARG-Werte nicht direkt in
+# "COPY --from=composer:${COMPOSER_VERSION}" expandieren. Stattdessen wird
+# eine benannte Stage per FROM mit dem ARG erzeugt und ueber den Stage-Namen
+# kopiert (das ist erlaubt, nur die direkte Image-Referenz nicht).
+FROM composer:${COMPOSER_VERSION} AS composer_stage
+
+FROM php:${PHP_VERSION}-fpm-alpine
+
+# Composer aus der composer_stage kopieren, statt einen separaten Composer-Container
+# mit potenziell anderer PHP-Version zu nutzen. So passt die Plattform, gegen die Composer
+# Pakete aufloest, immer exakt zur tatsaechlichen Laufzeit-PHP-Version (PHP_VERSION).
+COPY --from=composer_stage /usr/bin/composer /usr/bin/composer
 
 RUN set -eux; \
     apk add --no-cache \

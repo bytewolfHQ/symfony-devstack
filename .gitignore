@@ -1,7 +1,9 @@
 # Local environment overrides
 .env
+.env.*
 .env.*.local
 .env.local
+!.env.example
 
 # Local tooling artifacts
 .idea/

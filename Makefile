@@ -21,8 +21,15 @@ export UID
 export GID
 SERVICE ?= php
 CMD ?=
+WEBAPP ?= 0
 
-.PHONY: up down build restart logs shell php composer init-app smoke trust-certs
+.PHONY: up down build restart logs shell php composer init-app smoke trust-certs use
+
+use:
+	@test -n "$(ENV)" || { echo "Usage: make use ENV=<name>  (erwartet .env.<name>)"; exit 1; }
+	@test -f .env.$(ENV) || { echo ".env.$(ENV) not found"; exit 1; }
+	ln -sf .env.$(ENV) .env
+	@echo "Aktiv: .env -> .env.$(ENV)"
 
 up:
 	$(COMPOSE) up -d --remove-orphans
@@ -47,7 +54,7 @@ php:
 	$(COMPOSE) exec php sh
 
 composer:
-	$(COMPOSE) run --rm composer $(CMD)
+	$(COMPOSE) run --rm php composer $(CMD)
 
 init-app:
 	@case "$(SYMFONY_VERSION)" in \
@@ -60,7 +67,11 @@ init-app:
 		echo "Example: make init-app SYMFONY_VERSION=$(SYMFONY_VERSION) APP_DIR=../new-app"; \
 		exit 1; \
 	fi
-	$(COMPOSE) run --rm composer create-project symfony/skeleton:"$(SYMFONY_VERSION).*" /app
+	$(COMPOSE) run --rm php composer create-project symfony/skeleton:"$(SYMFONY_VERSION).*" .
+	@if [ "$(WEBAPP)" = "1" ]; then \
+		echo "Installing webapp pack (Twig, Doctrine, Security, Forms, Stimulus, Turbo)..."; \
+		$(COMPOSE) run --rm php composer require webapp; \
+	fi
 
 smoke:
 	@curl -fsS http://$(APP_HOST):$(APP_PORT)/ > /dev/null

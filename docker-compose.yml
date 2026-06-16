@@ -2,6 +2,9 @@ services:
   php:
     build:
       context: ./docker/php
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.3}
+        COMPOSER_VERSION: ${COMPOSER_VERSION:-2}
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       APP_ENV: ${APP_ENV:-dev}
@@ -36,12 +39,12 @@ services:
     #   - "traefik.http.routers.symfony-devstack.tls.certresolver=yourresolver"
 
   db:
-    image: mariadb:11
+    image: mariadb:${DB_VERSION:-11}
     environment:
-      MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: app
-      MARIADB_USER: app
-      MARIADB_PASSWORD: app
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MARIADB_DATABASE: ${DB_NAME:-app}
+      MARIADB_USER: ${DB_USER:-app}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-app}
     volumes:
       - db_data:/var/lib/mysql
 
@@ -51,16 +54,7 @@ services:
     depends_on:
       - db
     ports:
-      - "8081:8080"
-
-  composer:
-    image: composer:2
-    working_dir: /app
-    user: "${UID:-1000}:${GID:-1000}"
-    extra_hosts:
-      - "${SHOPWARE_HOSTNAME:-shopware.local}:${SHOPWARE_IP:-127.0.0.1}"
-    volumes:
-      - ${APP_DIR:-../app}:/app
+      - "${ADMINER_PORT:-8081}:8080"
 
 volumes:
   db_data:
