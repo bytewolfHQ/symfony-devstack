@@ -23,7 +23,7 @@ SERVICE ?= php
 CMD ?=
 WEBAPP ?= 0
 
-.PHONY: up down build restart logs shell php composer init-app smoke trust-certs use
+.PHONY: up down build restart logs shell php composer exec console init-app smoke trust-certs use
 
 use:
 	@test -n "$(ENV)" || { echo "Usage: make use ENV=<name>  (erwartet .env.<name>)"; exit 1; }
@@ -55,6 +55,18 @@ php:
 
 composer:
 	$(COMPOSE) run --rm php composer $(CMD)
+
+# Beliebigen Befehl im laufenden Service ausfuehren, z.B.:
+#   make exec CMD="bin/console cache:clear"
+#   make exec SERVICE=db CMD="mysql -uapp -papp app"
+exec:
+	$(COMPOSE) exec $(SERVICE) $(CMD)
+
+# Shortcut speziell fuer Symfonys bin/console, z.B.:
+#   make console CMD="cache:clear"
+#   make console CMD="make:entity"
+console:
+	$(COMPOSE) exec php bin/console $(CMD)
 
 init-app:
 	@case "$(SYMFONY_VERSION)" in \

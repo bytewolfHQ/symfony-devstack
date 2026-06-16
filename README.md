@@ -131,9 +131,24 @@ make logs SERVICE=nginx
 make shell SERVICE=php
 make php
 make composer CMD="install"
+make console CMD="cache:clear"
+make exec CMD="bin/console make:entity"
+make exec SERVICE=db CMD="mysql -uapp -papp app"
 make init-app SYMFONY_VERSION=7.4 APP_DIR=../todo-app WEBAPP=1
 make smoke
 make trust-certs
+```
+
+## Running console/arbitrary commands
+For Symfony's `bin/console`, use the shortcut:
+```sh
+make console CMD="cache:clear"
+make console CMD="make:entity"
+```
+For anything else (any service, any command), use the generic `exec` target instead of typing out `docker compose exec ...`:
+```sh
+make exec CMD="bin/console doctrine:migrations:status"
+make exec SERVICE=db CMD="mysql -uapp -papp app"
 ```
 
 ## Composer usage
