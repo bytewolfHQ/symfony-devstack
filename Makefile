@@ -23,52 +23,51 @@ SERVICE ?= php
 CMD ?=
 WEBAPP ?= 0
 
-.PHONY: up down build restart logs shell php composer exec console init-app smoke trust-certs use
+.PHONY: help up down build restart logs shell php composer exec console init-app smoke trust-certs use
 
-use:
+.DEFAULT_GOAL := help
+
+help: ## Diese Liste anzeigen
+	@grep -h -E '^[a-zA-Z_-]+:.*##' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*##"}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
+
+use: ## .env auf .env.<name> umlinken, z.B. make use ENV=todo-app
 	@test -n "$(ENV)" || { echo "Usage: make use ENV=<name>  (erwartet .env.<name>)"; exit 1; }
 	@test -f .env.$(ENV) || { echo ".env.$(ENV) not found"; exit 1; }
 	ln -sf .env.$(ENV) .env
 	@echo "Aktiv: .env -> .env.$(ENV)"
 
-up:
+up: ## Stack starten (im Hintergrund) und CA-Zertifikate auffrischen
 	$(COMPOSE) up -d --remove-orphans
 	@$(MAKE) trust-certs
 
-down:
+down: ## Stack stoppen und Container entfernen
 	$(COMPOSE) down
 
-build:
+build: ## php-Image bauen (noetig nach Aenderung von PHP_VERSION/COMPOSER_VERSION)
 	$(COMPOSE) build php
 
-restart:
+restart: ## Alle Container neu starten (ohne Neubau)
 	$(COMPOSE) restart
 
-logs:
+logs: ## Logs eines Service folgen, z.B. make logs SERVICE=nginx
 	$(COMPOSE) logs -f --tail=100 $(SERVICE)
 
-shell:
+shell: ## Shell in einem Service oeffnen, z.B. make shell SERVICE=db
 	$(COMPOSE) exec $(SERVICE) sh
 
-php:
+php: ## Shell im php-Container oeffnen
 	$(COMPOSE) exec php sh
 
-composer:
+composer: ## Composer im php-Service ausfuehren, z.B. make composer CMD="install"
 	$(COMPOSE) run --rm php composer $(CMD)
 
-# Beliebigen Befehl im laufenden Service ausfuehren, z.B.:
-#   make exec CMD="bin/console cache:clear"
-#   make exec SERVICE=db CMD="mysql -uapp -papp app"
-exec:
+exec: ## Beliebigen Befehl in einem Service ausfuehren, z.B. make exec CMD="bin/console cache:clear"
 	$(COMPOSE) exec $(SERVICE) $(CMD)
 
-# Shortcut speziell fuer Symfonys bin/console, z.B.:
-#   make console CMD="cache:clear"
-#   make console CMD="make:entity"
-console:
+console: ## Shortcut fuer bin/console, z.B. make console CMD="cache:clear"
 	$(COMPOSE) exec php bin/console $(CMD)
 
-init-app:
+init-app: ## Symfony-Skeleton in APP_DIR anlegen, z.B. make init-app SYMFONY_VERSION=7.4 WEBAPP=1
 	@case "$(SYMFONY_VERSION)" in \
 		6.*|7.*) ;; \
 		*) echo "SYMFONY_VERSION must be 6.x or 7.x"; exit 1 ;; \
@@ -85,11 +84,11 @@ init-app:
 		$(COMPOSE) run --rm php composer require webapp; \
 	fi
 
-smoke:
+smoke: ## Pruefen, ob die App unter APP_HOST/APP_PORT antwortet
 	@curl -fsS http://$(APP_HOST):$(APP_PORT)/ > /dev/null
 	@echo "OK"
 
-trust-certs:
+trust-certs: ## CA-Zertifikate aus docker/certs/*.crt im php-Container vertrauen
 	@if ls docker/certs/*.crt >/dev/null 2>&1; then \
 		echo "Refreshing CA certificates inside php container..."; \
 		$(COMPOSE) exec -T -u root php sh -lc 'update-ca-certificates >/dev/null && echo "CA certificates refreshed."'; \

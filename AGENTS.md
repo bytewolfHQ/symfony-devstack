@@ -7,7 +7,7 @@ This is an infrastructure-only repo. Application code lives outside the repo and
 - `docker/certs/` local CA certs (ignored by Git; `.gitkeep` keeps the folder)
 
 ## Build, Test, and Development Commands
-Use the Makefile-driven workflow:
+Use the Makefile-driven workflow. Run `make help` (or just `make`, the default goal) for a self-documenting list of all targets:
 - `make use ENV=<name>` — symlink `.env` to `.env.<name>` (switch between projects sharing this devstack)
 - `make build` — build the php image (rerun after changing `PHP_VERSION`/`COMPOSER_VERSION`)
 - `make up` / `make down` — start/stop the stack

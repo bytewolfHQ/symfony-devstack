@@ -122,7 +122,9 @@ curl -v https://your-hostname 2>&1 | grep -E "SSL|issuer|subject"
 `/api/oauth/token` expects `POST` (not `GET`). A `405` response with valid TLS usually means the method is wrong.
 
 ## Useful commands
+Run `make help` (or just `make`, it's the default goal) to list all targets with descriptions.
 ```sh
+make help
 make use ENV=todo-app
 make build
 make up
